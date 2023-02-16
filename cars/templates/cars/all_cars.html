@@ -1,0 +1,195 @@
+{% extends 'home/header.html' %}
+
+{% block content %}
+
+<div class="row">
+
+    <div class="col s8 m6 l3 xl3">
+      <div class="card hoverable white darken-1">
+        <div class="card-content black-text">
+            <span class="card-title center">Brands</span>
+            <div class="collection hoverable " >
+
+                <a href="{% url 'cars:all_cars' %}" class="collection-item white darken-1 black-text waves-effect waves-green">All</a>
+                {% for brand in brands %}
+                <table class="highlight">
+                    <tbody>
+                    <tr>
+                        <td><a href="{% url 'cars:all_cars' %}?brand={{brand.name}}" class="collection-item active white darken-1 black-text waves-effect waves-green" >{{brand.name}}</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                {% endfor %}
+            <form>
+                    <input type="text" id="recherche" placeholder="Cherchez votre voiture..." onkeyup="requeteXML()">
+                    <button type="submit" id="bouton-recherche">Rechercher</button>
+                </form>
+                <div id="affichage">
+                </div>
+                {% if user.is_authenticated and request.user.is_staff %}
+                        <a href="{% url 'cars:add_car' %}" class="btn collection-item active white darken-1 black-text waves-effect waves-green">Add a car</a>
+
+                {% endif %}
+
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col s12 m9 l9 xl9">
+    {% for car in cars %}
+      <div class="col s12 m12 l6 xl4">
+      <div class="card medium hoverable">
+        <div class="card-image">
+<!--          <img class="responsive-img" src="{{car.image1}}" id="image_ajustement">-->
+            <div class="carousel carousel-slider">
+                <a class="carousel-item"><img id="imageVoiture{{forloop.counter}}" src="{{car.image1}}" class="responsive-img"></a>
+                <a class="carousel-item"><img src="{{car.image2}}" class="responsive-img"></a>
+
+                <a class="carousel-item"><img src="{{car.image3}}" class="responsive-img"></a>
+                <a class="carousel-item" ><img src="{{car.image4}}" class="responsive-img"></a>
+            </div>
+            <span class="card-title">{{car.model}}</span>
+        </div>
+<!--        <div class="card-content white darken-1 black-text center">-->
+<!--          <p>{{car}}</p>-->
+<!--          <p>{{car.description|safe}}</p>-->
+<!--        </div>-->
+      <p id="textZoom{{forloop.counter}}"></p>
+        <div class="card-action white darken-1 ">
+            <a href="{% url 'cars:car_detail' car.pk %}" class="btn white black-text waves-effect waves-green">Details</a>
+
+
+            <!-- Modal Trigger -->
+<!--            <a class="btn white black-text waves-effect waves-green modal-trigger" href="#modal1">Details</a>-->
+
+            <!-- Modal Structure -->
+<!--            <div id="modal1" class="modal modal-fixed-footer">-->
+<!--                <div class="modal-content">-->
+<!--                    <h4>{{car}}</h4>-->
+<!--                    <p>Description : {{car.description|safe}}</p>-->
+<!--                    <p>Max speed : {{car.max_speed}}</p>-->
+<!--                    <p>Transmission : {{car.transmission}}</p>-->
+<!--                    <p>Consumption : {{car.consumption}}</p>-->
+<!--                    <p>Carburant : {{car.carburant}}</p>-->
+<!--                    <p>Carburant : {{car.carburant}}</p>-->
+<!--                </div>-->
+<!--                <div class="modal-footer">-->
+<!--                <a href="#!" class="modal-close waves-effect black-text waves-green btn-flat">Return</a>-->
+<!--                </div>-->
+<!--            </div>-->
+
+
+            {% if not user.is_staff %}
+                <a href="{% url 'customer:create_reservation_from_customer' car_pk=car.pk %}" class="btn white black-text waves-effect waves-green">Reserve</a>
+            {% endif %}
+            <button id="zoom{{forloop.counter}}" class="btn white black-text waves-effect waves-green">zoom</button>
+          {% if user.is_authenticated and request.user.is_staff %}
+              <a href="{% url 'cars:update_car' car.id %}" class="btn collection-item active white darken-1 black-text waves-effect waves-green">Update</a>
+
+              <a href="{% url 'cars:delete_car' car.id %}" class="btn collection-item active white darken-1 black-text waves-effect waves-red">Delete</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <h3>No Cars</h3>
+    {% endfor %}
+
+    </div>
+
+</div>
+<script type="text/javascript">
+      var nb_voit = {{cars|length}};
+      //console.log(nb_voit);
+
+      // Récuperation de l'image
+      var img = document.getElementById('imageVoiture');
+      // Function qui aggrandit l'image
+      function enlargeImg(i) {
+        var img = document.getElementById('imageVoiture' + i);
+        var btn = document.getElementById('zoom'+i);
+        var divAInserer = document.getElementById('textZoom'+i);
+        var textAInserer = document.createTextNode('Image maintenant zoomée');
+
+
+
+        if (img.style.transform == "scale(1.5)")
+        {
+        img.style.transform = "scale(1)";
+        btn.textContent = "zoom";
+       // suppressionDiv();
+        divAInserer.remove();
+        //console.log(i);
+        }
+        else
+        {
+        img.style.transform = "scale(1.5)";
+        btn.textContent = "dézoomer";
+        //ajoutTextDiv();
+        divAInserer.appendChild(textAInserer);
+        }
+        // Effet d'animation
+        img.style.transition = "transform 0.25s ease";
+      }
+
+     /* function ajoutTextDiv(){
+         // console.log('helloppp')
+          let divAjoutee = document.getElementById('textZoom');
+          let textAjoute = document.createTextNode('Image maintenant zoomée');
+
+          divAjoutee.appendChild(textAjoute);
+      }
+
+      function suppressionDiv(){
+          let suppDiv = document.getElementById('textZoom');
+          suppDiv.remove()
+      }*/
+
+      //var ajout = ajoutTextDiv;
+      //var suppression = suppressionDiv;
+
+      for (let i = 1; i < nb_voit; i++) {
+        document.getElementById('zoom'+i).addEventListener('click', function(){
+        enlargeImg(i);
+        })
+       }
+
+      document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("bouton-recherche").addEventListener("click", function (e) {
+        e.preventDefault();
+        requeteXML();
+      });
+
+      document.getElementById("barre-recherche").addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          requeteXML();
+        }
+      });
+});
+      function requeteXML() {
+        var query = document.getElementById("recherche").value;
+        var xhr = new XMLHttpRequest();
+
+        xhr.open("GET", "recherche/" + query);
+        xhr.onreadystatechange = function () {
+        var voitures = JSON.parse(xhr.responseText);
+        var list = "<ul>";
+          if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            for (var i = 0; i < voitures.length; i++){
+                list += "<li>" + voitures[i].name + "</li>";
+            }
+            list += "</ul>";
+            document.getElementById("affichage").innerHTML = list;
+
+          }
+        }
+;
+        xhr.send();
+      }
+
+
+
+</script>
+{% endblock %}
